@@ -8,5 +8,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'astrowatch.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
+    url(r'^observations/', 
+        include('observations.urls', namespace='observations')),
     url(r'^admin/', include(admin.site.urls)),
 )
