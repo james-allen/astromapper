@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.graticule {
+  fill: none;
+  stroke: #aaaaaa;
+}
+
+.graticule.outline {
+  stroke-width: 2px;
+  stroke: #000000;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/d3.geo.projection.v0.min.js"></script>
+<script type="text/javascript">
+
+// setup fill color
+var cValue = function(d) { return d.instrument_name;};
+var color = d3.scale.category20();
+
+var exposure_list = {{ exposure_list|safe }};
+
+var width = 1160,
+    height = 500;
+
+var fullSize = 150;
+
+var rScale = d3.scale.linear()
+                     .domain([0, d3.max(exposure_list, 
+                                        function(d) {return Math.sqrt(d.exposed);})])
+                     .range([0, 5])
+
+var projection = d3.geo.aitoff()
+    .scale(fullSize)
+    .translate([480, height / 2])
+    .precision(.1);
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var graticule = d3.geo.graticule();
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .call(d3.behavior.zoom()
+        .on("zoom", redraw));
+
+var tlast = [0, 0],
+    slast = null;
+
+function redraw() {
+    var scale = d3.event.scale,
+        t = d3.event.translate;
+
+    // if scaling changes, ignore translation
+    if (scale != slast) {
+        projection.scale(scale * fullSize);
+    } else {
+        var dx = t[0]-tlast[0],
+            dy = t[1]-tlast[1],
+            yaw = projection.rotate()[0],
+            pitch = projection.rotate()[1],
+            tp = projection.translate();
+        projection.rotate([
+            yaw+360.*dx/960./scale, 
+            pitch-180.*dy/height/scale, 
+            0]);
+    }
+    slast = scale;
+    tlast = t;
+
+    svg.selectAll("circle")
+        .attr("transform", translateCircle);
+    svg.selectAll("path")
+        .attr("d", path);
+}
+
+function translateCircle(d) {
+    return "translate(" + projection([180.0 - d.ra, d.dec]) + ")";
+}
+
+svg.append("path")
+    .datum(graticule)
+    .attr("class", "graticule line")
+    .attr("d", path);
+
+svg.append("path")
+    .datum(graticule.outline)
+    .attr("class", "graticule outline")
+    .attr("d", path);
+
+svg.selectAll("circle")
+    .data(exposure_list)
+    .enter()
+    .append("circle")
+    .attr("transform", translateCircle)
+    .attr("r", function(d) {
+        return rScale(Math.sqrt(d.exposed))
+    })
+    .style("fill", function(d) { return color(cValue(d));});
+
+// draw legend
+var legend = svg.selectAll(".legend")
+    .data(color.domain())
+    .enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+// draw legend colored rectangles
+legend.append("rect")
+    .attr("x", width - 18)
+    .attr("width", 18)
+    .attr("height", 18)
+    .style("fill", color);
+
+// draw legend text
+legend.append("text")
+    .attr("x", width - 24)
+    .attr("y", 9)
+    .attr("dy", ".35em")
+    .style("text-anchor", "end")
+    .text(function(d) { return d;})
+
+
+</script>
+
+</body>
+
