@@ -1,13 +1,12 @@
 import json
 from datetime import date, timedelta
-from calendar import monthrange
 
 from django.http import Http404
 from django.shortcuts import render
 
-from observations.models import Telescope, Instrument, Night, Exposure
+from observations.models import Telescope, Night, Exposure
 
-def night(request, name, year, month, day):
+def night_view(request, name, year, month, day):
     """A specific night on a specific telescope."""
     check_telescope_name(name)
     date_obs = date(int(year), int(month), int(day))
@@ -15,7 +14,7 @@ def night(request, name, year, month, day):
         instrument__telescope__name=name, ut_date=date_obs)
     return render_night_list(request, night_list)
 
-def month(request, name, year, month):
+def month_view(request, name, year, month):
     """A specific month on a specific telescope."""
     check_telescope_name(name)
     first_date = date(int(year), int(month), 1)
@@ -25,7 +24,7 @@ def month(request, name, year, month):
         end_date = date(int(year)+1, 1, 1)
     return render_night_range(request, first_date, end_date, name)
 
-def year(request, name, year):
+def year_view(request, name, year):
     """A specific year on a specific telescope."""
     check_telescope_name(name)
     first_date = date(int(year), 1, 1)
