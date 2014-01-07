@@ -19,15 +19,18 @@ def month(request, name, year, month):
     """A specific month on a specific telescope."""
     check_telescope_name(name)
     first_date = date(int(year), int(month), 1)
-    last_date = date(int(year), int(month), monthrange(int(year), int(month))[1])
-    return render_night_range(request, first_date, last_date, name)
+    if int(month) == 12:
+        end_date = date(int(year), int(month)+1, 1)
+    else:
+        end_date = date(int(year)+1, 1, 1)
+    return render_night_range(request, first_date, end_date, name)
 
 def year(request, name, year):
     """A specific year on a specific telescope."""
     check_telescope_name(name)
     first_date = date(int(year), 1, 1)
-    last_date = date(int(year), 12, 31)
-    return render_night_range(request, first_date, last_date, name)
+    end_date = date(int(year)+1, 1, 1)
+    return render_night_range(request, first_date, end_date, name)
 
 def telescope(request, name):
     """All observations on a specific telescope."""
@@ -36,10 +39,10 @@ def telescope(request, name):
         instrument__telescope__name=name)
     return render_night_list(request, night_list)
 
-def render_night_range(request, first_date, last_date, name):
+def render_night_range(request, first_date, end_date, name):
     night_list = []
     current_date = first_date
-    while current_date <= last_date:
+    while current_date < end_date:
         night_list.extend(Night.objects.filter(
             instrument__telescope__name=name, ut_date=current_date))
         current_date += timedelta(days=1)
