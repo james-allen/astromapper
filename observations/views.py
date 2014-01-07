@@ -53,15 +53,9 @@ def render_night_list(request, night_list):
     for n in night_list:
         exposure_list.extend(e for e in Exposure.objects.filter(night=n)
                              if e.object_exp)
-    exposure_dict_list = [
-        {'ra':e.ra, 'dec':e.dec, 'exposed':e.exposed, 
-         'instrument_name':e.night.instrument.name} for e in exposure_list]
-    exposure_json = json.dumps(
-        [{'ra':e.ra, 'dec':e.dec, 'exposed':e.exposed, 
-          'instrument_name':e.night.instrument.name} for e in exposure_list])
     return render(request, 'observations/observations.html',
                   {'instrument_name_set': instrument_name_set,
-                   'exposure_list': exposure_json})
+                   'exposure_list': exposure_list})
 
 def check_telescope_name(name):
     """

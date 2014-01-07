@@ -1,3 +1,5 @@
+{% load obs_filters %}
+
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
@@ -22,7 +24,7 @@
 var cValue = function(d) { return d.instrument_name;};
 var color = d3.scale.category20();
 
-var exposure_list = {{ exposure_list|safe }};
+var exposure_list = {{ exposure_list|jsonify_exposure_list|safe }};
 
 var width = 1160,
     height = 500;
