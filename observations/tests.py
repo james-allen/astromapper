@@ -115,6 +115,47 @@ class ObservationsViewTests(TestCase):
         self.assertQuerysetEqual(response.context['exposure_list'], 
                                  expected_exposures)
 
+    def test_view_telescope_december(self):
+        """
+        Test which exposures are returned when a telescope and month are
+        selected, for the slightly special case of December.
+        """
+        telescope_name = 'super_big_telescope'
+        instrument_name = 'awesome_instrument'
+        create_exposures(telescope_name, instrument_name, 2013, 11, 30)
+        create_exposures(telescope_name, instrument_name, 2013, 12, 1)
+        create_exposures(telescope_name, instrument_name, 2013, 12, 31)
+        create_exposures(telescope_name, instrument_name, 2014, 1, 1)
+        expected_exposures = [
+            '<Exposure: %s 2013/12/01 run 1>' % telescope_name,
+            '<Exposure: %s 2013/12/01 run 2>' % telescope_name,
+            '<Exposure: %s 2013/12/31 run 1>' % telescope_name,
+            '<Exposure: %s 2013/12/31 run 2>' % telescope_name,
+            ]
+        response = self.client.get(reverse(
+            'observations:month', args=('super_big_telescope','2013','12')))
+        self.assertQuerysetEqual(response.context['exposure_list'], 
+                                 expected_exposures)
+
+    def test_view_telescope_night(self):
+        """
+        Test which exposures are returned when a telescope and night are
+        selected.
+        """
+        telescope_name = 'super_big_telescope'
+        instrument_name = 'awesome_instrument'
+        create_exposures(telescope_name, instrument_name, 2013, 8, 5)
+        create_exposures(telescope_name, instrument_name, 2013, 8, 6)
+        create_exposures(telescope_name, instrument_name, 2013, 8, 7)
+        expected_exposures = [
+            '<Exposure: %s 2013/08/06 run 1>' % telescope_name,
+            '<Exposure: %s 2013/08/06 run 2>' % telescope_name,
+            ]
+        response = self.client.get(reverse(
+            'observations:night', args=('super_big_telescope','2013','8','6')))
+        self.assertQuerysetEqual(response.context['exposure_list'], 
+                                 expected_exposures)
+
 def create_exposures(telescope_name, instrument_name, year_int, month_int, 
                      night_int):
     """
