@@ -18,7 +18,7 @@ def month_view(request, name, year, month):
     """A specific month on a specific telescope."""
     check_telescope_name(name)
     first_date = date(int(year), int(month), 1)
-    if int(month) == 12:
+    if int(month) != 12:
         end_date = date(int(year), int(month)+1, 1)
     else:
         end_date = date(int(year)+1, 1, 1)
