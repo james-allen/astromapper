@@ -17,4 +17,3 @@ urlpatterns = patterns('',
     url(r'^(?P<name>.+?)/$', 
         views.telescope, name='telescope'),
 )
-

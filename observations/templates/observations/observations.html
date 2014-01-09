@@ -16,8 +16,11 @@
 
 </style>
 <body>
+<link href="/media/css/tipsy.css" rel="stylesheet" type="text/css" />
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/d3.geo.projection.v0.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="/media/js/jquery.tipsy.js"></script>
 <script type="text/javascript">
 
 // setup fill color
@@ -128,6 +131,16 @@ legend.append("text")
     .style("text-anchor", "end")
     .text(function(d) { return d;})
 
+// add tooltips to each datapoint
+$('svg circle').tipsy({
+    gravity: 'e',
+    html: true,
+    fade: true,
+    title: function() {
+        var d = this.__data__;
+        return 'RA: ' + d.ra + ', Dec: ' + d.dec + '<br/>Exposure: ' + d.exposed + 's';
+    }
+})
 
 </script>
 
