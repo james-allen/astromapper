@@ -112,6 +112,8 @@ def parse_line(line, regex, night):
     Extract data from a single line of a log file and make a new Exposure
     object to describe it, unless a matching Exposure already exists.
     """
+    if ' Comment ' in line:
+        return
     match = re.match(regex, line)
     if match:
         # First parse the run number only
@@ -191,7 +193,9 @@ def parse_ut_start(ut_start_str):
     # return pytz.timezone('UTC').localize(time(
     #     int(ut_start_str[:2]), int(ut_start_str[3:5]), int(ut_start_str[6:8])))
     return time(
-        int(ut_start_str[:2]), int(ut_start_str[3:5]), int(ut_start_str[6:8]))
+        int(ut_start_str[:2]), 
+        int(ut_start_str[3:5]), 
+        int(float(ut_start_str[6:8])))
 
 def parse_exposed(exposed_str):
     """Parse an exposure time string."""
