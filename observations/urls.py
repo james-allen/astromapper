@@ -4,6 +4,8 @@ from observations import views
 
 urlpatterns = patterns('',
     # eg: /aat/2013/5/27/
+    url(r'^user/(?P<username>.+?)/$',
+        views.user_view, name='user'),
     url(r'^(?P<name>.+?)/(?P<year>\d{4})/(?P<month>\d{1,2})/'
         r'(?P<day>\d{1,2})/$', 
         views.night_view, name='night'),

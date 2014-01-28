@@ -2,9 +2,16 @@ import json
 from datetime import date, timedelta
 
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from observations.models import Telescope, Night, Exposure
+from django.contrib.auth.models import User
+
+def user_view(request, username):
+    """A user's home page."""
+    user = get_object_or_404(User, username=username)
+    return render(request, 'observations/user_home.html',
+                  {'username': username})
 
 def night_view(request, name, year, month, day):
     """A specific night on a specific telescope."""
