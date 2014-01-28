@@ -7,6 +7,24 @@ from django.shortcuts import render, get_object_or_404
 from observations.models import Telescope, Night, Exposure
 from django.contrib.auth.models import User
 
+import account.views
+import observations.forms
+
+
+class SignupView(account.views.SignupView):
+
+    form_class = observations.forms.SignupForm
+
+    def after_signup(self, form):
+        self.create_profile(form)
+        super(SignupView, self).after_signup(form)
+
+    def create_profile(self, form):
+        profile = self.created_user.get_profile()
+        profile.public_homepage = form.cleaned_data["public_homepage"]
+        profile.save()
+
+
 def user_view(request, username):
     """A user's home page."""
     user = get_object_or_404(User, username=username)

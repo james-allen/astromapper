@@ -1,6 +1,8 @@
 from django.conf.urls import patterns, include, url
 from django.conf import settings
 
+import observations.views
+
 from django.contrib import admin
 admin.autodiscover()
 
@@ -12,6 +14,8 @@ urlpatterns = patterns('',
     url(r'^observations/', 
         include('observations.urls', namespace='observations')),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^account/signup/$', observations.views.SignupView.as_view(),
+        name="account_signup"),
     url(r'^account/', include('account.urls')),
 )
 
