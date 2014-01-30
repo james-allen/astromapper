@@ -5,13 +5,24 @@
 <style>
 
 .graticule {
-  fill: none;
-  stroke: #aaaaaa;
+    fill: none;
+    stroke: #aaaaaa;
 }
 
 .graticule.outline {
-  stroke-width: 2px;
-  stroke: #000000;
+    stroke-width: 2px;
+    stroke: #000000;
+}
+
+#loading {
+    text-anchor: middle;
+    dominant-baseline: middle;
+    font-size: 200%;
+}
+
+#loadingbackground {
+    fill: #FFFFFF;
+    opacity: 0.5;
 }
 
 </style>
@@ -23,25 +34,17 @@
 <script type="text/javascript" src="/media/js/jquery.tipsy.js"></script>
 <script type="text/javascript">
 
-// setup fill color
-var cValue = function(d) { return d.instrument_name;};
-var color = d3.scale.category20();
-
-var exposure_list = {{ exposure_list|jsonify_exposure_list|safe }};
+// Set up and draw the outline of the coordinate system
 
 var width = 1160,
-    height = 500;
+    height = 500,
+    xcentre = 480;
 
 var fullSize = 150;
 
-var rScale = d3.scale.linear()
-                     .domain([0, d3.max(exposure_list, 
-                                        function(d) {return Math.sqrt(d.exposed);})])
-                     .range([0, 5])
-
 var projection = d3.geo.aitoff()
     .scale(fullSize)
-    .translate([480, height / 2])
+    .translate([xcentre, height / 2])
     .precision(.1);
 
 var path = d3.geo.path()
@@ -52,8 +55,18 @@ var graticule = d3.geo.graticule();
 var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height)
-    .call(d3.behavior.zoom()
-        .on("zoom", redraw));
+
+svg.append("path")
+    .datum(graticule)
+    .attr("class", "graticule line")
+    .attr("d", path);
+
+svg.append("path")
+    .datum(graticule.outline)
+    .attr("class", "graticule outline")
+    .attr("d", path);
+
+// Set up functions for transforming data on zoom/pan
 
 var tlast = [0, 0],
     slast = null;
@@ -89,58 +102,100 @@ function translateCircle(d) {
     return "translate(" + projection([180.0 - d.ra, d.dec]) + ")";
 }
 
-svg.append("path")
-    .datum(graticule)
-    .attr("class", "graticule line")
-    .attr("d", path);
+// setup fill color
+var cValue = function(d) { return d.instrument_name;};
+var color = d3.scale.category20();
 
-svg.append("path")
-    .datum(graticule.outline)
-    .attr("class", "graticule outline")
-    .attr("d", path);
+// Define (don't run yet) function to plot the data
 
-svg.selectAll("circle")
-    .data(exposure_list)
-    .enter()
-    .append("circle")
-    .attr("transform", translateCircle)
-    .attr("r", function(d) {
-        return rScale(Math.sqrt(d.exposed))
+var plot_data = function(exposure_list){
+
+    // Remove the "Loading..." text
+    $("#loading").remove();
+    $("#loadingbackground").remove();
+
+    // Define the scale for the circle radii
+    var rScale = d3.scale.linear()
+                         .domain([0, d3.max(exposure_list, 
+                                            function(d) {return Math.sqrt(d.exposed);})])
+                         .range([0, 5]);
+
+    // Draw the circles
+    svg.selectAll("circle")
+        .data(exposure_list)
+        .enter()
+        .append("circle")
+        .attr("transform", translateCircle)
+        .attr("r", function(d) {
+            return rScale(Math.sqrt(d.exposed))
+        })
+        .style("fill", function(d) { return color(cValue(d));});
+
+    // draw legend
+    var legend = svg.selectAll(".legend")
+        .data(color.domain())
+        .enter().append("g")
+        .attr("class", "legend")
+        .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+    // draw legend colored rectangles
+    legend.append("rect")
+        .attr("x", width - 18)
+        .attr("width", 18)
+        .attr("height", 18)
+        .style("fill", color);
+
+    // draw legend text
+    legend.append("text")
+        .attr("x", width - 24)
+        .attr("y", 9)
+        .attr("dy", ".35em")
+        .style("text-anchor", "end")
+        .text(function(d) { return d;})
+
+    // add tooltips to each datapoint
+    $('svg circle').tipsy({
+        gravity: 'e',
+        html: true,
+        fade: true,
+        title: function() {
+            var d = this.__data__;
+            return 'RA: ' + d.ra + ', Dec: ' + d.dec + '<br/>Exposure: ' + d.exposed + 's';
+        }
     })
-    .style("fill", function(d) { return color(cValue(d));});
 
-// draw legend
-var legend = svg.selectAll(".legend")
-    .data(color.domain())
-    .enter().append("g")
-    .attr("class", "legend")
-    .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+    svg.call(d3.behavior.zoom()
+        .on("zoom", redraw));
 
-// draw legend colored rectangles
-legend.append("rect")
-    .attr("x", width - 18)
-    .attr("width", 18)
-    .attr("height", 18)
-    .style("fill", color);
+};
 
-// draw legend text
-legend.append("text")
-    .attr("x", width - 24)
-    .attr("y", 9)
-    .attr("dy", ".35em")
-    .style("text-anchor", "end")
-    .text(function(d) { return d;})
+// Let the user know we're loading the data
+loading = svg.append("text")
+    .text("Loading...")
+    .attr("x", xcentre)
+    .attr("y", height / 2)
+    .attr("id", "loading")
+    .each(function(){
+        dims = this.getBBox()
+        svg.insert("rect", "#loading")
+            .attr("x", dims.x - 5)
+            .attr("y", dims.y - 5)
+            .attr("width", dims.width + 10)
+            .attr("height", dims.height + 10)
+            .attr("id", "loadingbackground");
+    });
 
-// add tooltips to each datapoint
-$('svg circle').tipsy({
-    gravity: 'e',
-    html: true,
-    fade: true,
-    title: function() {
-        var d = this.__data__;
-        return 'RA: ' + d.ra + ', Dec: ' + d.dec + '<br/>Exposure: ' + d.exposed + 's';
-    }
+// Send a GET request for the data
+
+$(document).ready(function(){
+    $.getJSON(
+        '/observations/data/',
+        { {{ data_query | safe }} },
+        plot_data
+    );
 })
+
+
 
 </script>
 

@@ -3,9 +3,10 @@ from django.conf.urls import patterns, url
 from observations import views
 
 urlpatterns = patterns('',
-    # eg: /aat/2013/5/27/
+    url(r'^data/$', views.getdata, name='getdata'),
     url(r'^user/(?P<username>.+?)/$',
         views.user_view, name='user'),
+    # eg: /aat/2013/5/27/
     url(r'^(?P<name>.+?)/(?P<year>\d{4})/(?P<month>\d{1,2})/'
         r'(?P<day>\d{1,2})/$', 
         views.night_view, name='night'),
@@ -17,5 +18,5 @@ urlpatterns = patterns('',
         views.year_view, name='year'),
     # eg: /aat/
     url(r'^(?P<name>.+?)/$', 
-        views.telescope, name='telescope'),
+        views.telescope_view, name='telescope'),
 )
