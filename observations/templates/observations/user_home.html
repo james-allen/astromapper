@@ -1,2 +1,5 @@
-Hello, {{ login_username }}!
 You're looking at the page of {{ viewed_username }}
+
+{% for query in queries %}
+<p><a href={{query.path}}>{{query.get_str}}</a></p>
+{% endfor %}

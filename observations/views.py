@@ -1,10 +1,10 @@
 import json
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 
-from observations.models import Telescope, Night, Exposure
+from observations.models import Telescope, Night, Exposure, Query, QueryInstance
 from django.contrib.auth.models import User
 
 # import account.views
@@ -27,10 +27,20 @@ from django.contrib.auth.models import User
 
 def user_view(request, username):
     """A user's home page."""
+    max_queries = 10
     user = get_object_or_404(User, username=username)
+    query_instances = sorted(
+        QueryInstance.objects.filter(user__username=username),
+        key=(lambda qi:qi.timestamp), reverse=True)
+    queries = []
+    for qi in query_instances:
+        if qi.query not in queries:
+            queries.append(qi.query)
+            if len(queries) == max_queries:
+                break
     return render(request, 'observations/user_home.html',
                   {'viewed_username': username,
-                   'login_username': request.user.username})
+                   'queries': queries})
 
 def night_view(request, name, year, month, day):
     """A specific night on a specific telescope."""
@@ -38,6 +48,7 @@ def night_view(request, name, year, month, day):
     data_query = (
         'telescope_name:"%s", year:"%s", month:"%s", day:"%s"' % 
         (name, year, month, day))
+    update_query_lists(data_query, request)
     return render(request, 'observations/observations.html',
                   {'data_query': data_query})
 
@@ -47,6 +58,7 @@ def month_view(request, name, year, month):
     data_query = (
         'telescope_name:"%s", year:"%s", month:"%s"' % 
         (name, year, month))
+    update_query_lists(data_query, request)
     return render(request, 'observations/observations.html',
                   {'data_query': data_query})
 
@@ -56,6 +68,7 @@ def year_view(request, name, year):
     data_query = (
         'telescope_name:"%s", year:"%s"' % 
         (name, year))
+    update_query_lists(data_query, request)
     return render(request, 'observations/observations.html',
                   {'data_query': data_query})
 
@@ -64,6 +77,7 @@ def telescope_view(request, name):
     check_telescope_name(name)
     data_query = (
         'telescope_name:"%s"' % name)
+    update_query_lists(data_query, request)
     return render(request, 'observations/observations.html',
                   {'data_query': data_query})
 
@@ -96,3 +110,12 @@ def getdata(request):
         [{'ra':e.ra, 'dec':e.dec, 'exposed':e.exposed, 
           'instrument_name':e.night.instrument.name} for e in exposure_list])
     return HttpResponse(exposure_json, content_type="application/json")
+
+def update_query_lists(get_str, request):
+    query = Query.objects.get_or_create(get_str=get_str, path=request.path)[0]
+    qi = QueryInstance(query=query, user=request.user, timestamp=datetime.now())
+    query.save()
+    qi.save()
+    return
+
+

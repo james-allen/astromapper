@@ -1,6 +1,8 @@
 from datetime import date, time
 from operator import itemgetter
 import re
+from glob import glob
+import os.path
 
 from django.core.files import File
 from django.db import IntegrityError
@@ -10,6 +12,20 @@ from astropy.coordinates.angles import Angle
 from astropy.units import UnitsError
 
 from observations.models import Telescope, Instrument, Night, Exposure
+
+def repopulate():
+    """Restart the database from scratch."""
+    aat = Telescope.objects.get_or_create(name='AAT', longitude=149.0672, 
+                                          latitude=31.2754)[0]
+    aat.save()
+    for log_file_path in glob(
+            '/Users/jallen/Software/python/astrowatch_original/scratch/'
+            'log_aat_*.txt'):
+        try:
+            parse_aat_log(log_file_path)
+        except Exception:
+            print("Problem with log file", os.path.basename(log_file_path))
+    return
 
 def parse_aat_log(log_file_path):
     """

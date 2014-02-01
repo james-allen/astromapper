@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 def log_file_path(night, filename):
     telescope_name = night.instrument.telescope.name
@@ -54,3 +55,26 @@ class Exposure(models.Model):
 
     def __str__(self):
         return "%s run %i" % (self.night, self.run_number)
+
+
+class Query(models.Model):
+    """Details of a query that has or could be made."""
+    get_str = models.TextField()
+    path = models.TextField()
+
+
+# class Profile(models.Model):
+#     """Extra information about a user, to extend built-in User class."""
+#     user = models.OneToOneField(User)
+#     queries = models.ManyToManyField(Query, through='QueryInstance')
+
+#     def __str__(self):
+#         return self.user.username
+
+
+class QueryInstance(models.Model):
+    """Links a Profile to a Query with a timestamp."""
+    query = models.ForeignKey(Query)
+    user = models.ForeignKey(User)
+    timestamp = models.DateTimeField()
+
