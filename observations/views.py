@@ -105,10 +105,12 @@ def getdata(request):
     if 'day' in get:
         filter_dict['night__ut_date__day'] = int(get['day'])
     filter_dict['object_exp'] = True
-    exposure_list = Exposure.objects.filter(**filter_dict)
-    exposure_json = json.dumps(
-        [{'ra':e.ra, 'dec':e.dec, 'exposed':e.exposed, 
-          'instrument_name':e.night.instrument.name} for e in exposure_list])
+    exposure_list = Exposure.objects.filter(**filter_dict).values(
+        'ra', 'dec', 'exposed', 'night__instrument__name')
+    exposure_list = [{'ra':e['ra'], 'dec':e['dec'], 'exposed':e['exposed'],
+                      'instrument_name':e['night__instrument__name']}
+                     for e in exposure_list]
+    exposure_json = json.dumps(exposure_list)
     return HttpResponse(exposure_json, content_type="application/json")
 
 def update_query_lists(get_str, request):
