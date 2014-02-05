@@ -1,3 +1,4 @@
 __pycache__
 db.sqlite3
 astrowatch/settings.py
+example_page/
