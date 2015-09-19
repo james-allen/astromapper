@@ -8,7 +8,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'astrowatch.views.home', name='home'),
+    # url(r'^$', 'astromapper.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^observations/', 

@@ -1,0 +1,8 @@
+Django==1.6.1
+South==0.8.4
+astropy==0.3
+django-appconf==0.6
+django-user-accounts==1.0b17
+numpy==1.8.0
+pytz==2013.7
+six==1.5.2

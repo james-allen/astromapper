@@ -1,4 +1,6 @@
 __pycache__
 db.sqlite3
-astrowatch/settings.py
+astromapper/settings.py
 example_page/
+*.pyc
+scratch/

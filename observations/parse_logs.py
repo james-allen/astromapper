@@ -19,7 +19,7 @@ def repopulate():
                                           latitude=31.2754)[0]
     aat.save()
     for log_file_path in glob(
-            '/Users/jallen/Software/python/astrowatch_original/scratch/'
+            '/Users/jallen/Software/python/astromapper/scratch/'
             'log_aat_*.txt'):
         try:
             parse_aat_log(log_file_path)
